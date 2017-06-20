@@ -29,7 +29,7 @@ public class GameManager : BehaviourSingleton<GameManager>
     {
         this.StopAllCoroutines();
 
-        this.StartCoroutine(this.RunCoroutine());
+        //this.StartCoroutine(this.RunCoroutine());
     }
 
     private IEnumerator RunCoroutine()

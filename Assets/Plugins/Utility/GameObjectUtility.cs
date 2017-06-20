@@ -156,6 +156,23 @@ public static class GameObjectUtility
     #endregion
 
 
+    #region Canvas
+
+
+    /// <remarks>Source: http://answers.unity3d.com/questions/799616/unity-46-beta-19-how-to-convert-from-world-space-t.html</remarks>
+    public static Vector2 WorldToCanvas(this Canvas canvas, Vector3 worldPosition, Camera worldCamera)
+    {
+        var viewport_position = worldCamera.WorldToViewportPoint(worldPosition);
+        var canvas_rect = canvas.GetComponent<RectTransform>();
+
+        return new Vector2((viewport_position.x * canvas_rect.sizeDelta.x) - (canvas_rect.sizeDelta.x * 0.5f),
+                           (viewport_position.y * canvas_rect.sizeDelta.y) - (canvas_rect.sizeDelta.y * 0.5f));
+    }
+
+
+    #endregion
+
+
     #region Find
 
 
