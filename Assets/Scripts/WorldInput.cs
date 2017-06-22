@@ -44,6 +44,9 @@ public class WorldInput : MonoBehaviour
     [SerializeField]
     private Camera worldCamera;
 
+    [SerializeField]
+    private bool canHold = true;
+
     private Vector2 lastPointerPos;
     private RaycastHit lastPressHit;
     private float timePressStarted;
@@ -136,7 +139,7 @@ public class WorldInput : MonoBehaviour
         {
 			this.CheckDrag();
 
-            if (this.drag == null)
+            if (this.drag == null && this.canHold)
             {
                 this.CheckHold();
             }

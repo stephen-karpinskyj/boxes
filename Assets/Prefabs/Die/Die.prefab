@@ -39,7 +39,7 @@ GameObject:
   - component: {fileID: 4740030720030836}
   - component: {fileID: 114679398787133494}
   m_Layer: 0
-  m_Name: Box
+  m_Name: Die
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -135,3 +135,4 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   visualParent: {fileID: 4177557168441654}
+  coll: {fileID: 65161086951858768}

@@ -244,7 +244,7 @@ GameObject:
   - component: {fileID: 834048243}
   - component: {fileID: 834048242}
   m_Layer: 0
-  m_Name: Boxes
+  m_Name: Board
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -262,6 +262,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   worldCamera: {fileID: 1940271230}
+  canHold: 0
 --- !u!4 &834048243
 Transform:
   m_ObjectHideFlags: 0
@@ -319,10 +320,6 @@ Prefab:
     - target: {fileID: 4740030720030836, guid: 49be8cae302464d669b9974f260a80ee, type: 2}
       propertyPath: m_RootOrder
       value: 2
-      objectReference: {fileID: 0}
-    - target: {fileID: 1923279338621790, guid: 49be8cae302464d669b9974f260a80ee, type: 2}
-      propertyPath: m_Name
-      value: Box
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: 49be8cae302464d669b9974f260a80ee, type: 2}
@@ -418,10 +415,6 @@ Prefab:
       propertyPath: m_RootOrder
       value: 4
       objectReference: {fileID: 0}
-    - target: {fileID: 1923279338621790, guid: 49be8cae302464d669b9974f260a80ee, type: 2}
-      propertyPath: m_Name
-      value: Box
-      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: 49be8cae302464d669b9974f260a80ee, type: 2}
   m_IsPrefabParent: 0
@@ -473,10 +466,6 @@ Prefab:
     - target: {fileID: 4740030720030836, guid: 49be8cae302464d669b9974f260a80ee, type: 2}
       propertyPath: m_RootOrder
       value: 5
-      objectReference: {fileID: 0}
-    - target: {fileID: 1923279338621790, guid: 49be8cae302464d669b9974f260a80ee, type: 2}
-      propertyPath: m_Name
-      value: Box
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: 49be8cae302464d669b9974f260a80ee, type: 2}
@@ -571,10 +560,6 @@ Prefab:
     - target: {fileID: 4740030720030836, guid: 49be8cae302464d669b9974f260a80ee, type: 2}
       propertyPath: m_RootOrder
       value: 3
-      objectReference: {fileID: 0}
-    - target: {fileID: 1923279338621790, guid: 49be8cae302464d669b9974f260a80ee, type: 2}
-      propertyPath: m_Name
-      value: Box
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: 49be8cae302464d669b9974f260a80ee, type: 2}

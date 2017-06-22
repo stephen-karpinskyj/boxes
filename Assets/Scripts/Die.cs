@@ -1,20 +1,25 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using UnityEngine;
 using DG.Tweening;
 
-public class Box : MonoBehaviour
+public class Die : MonoBehaviour
 {
     private const float MoveDuration = 0.35f;
-    private const float MinDistBeforeMove = 0.5f;
+    private const float MinDistBeforeMove = 0.65f;
     
     [SerializeField]
     private Transform visualParent;
 
+    [SerializeField]
+    private Collider coll;
+
     private float size;
     private float halfSize;
 
-    private bool isRotating;
-    private bool hasMovedSinceDrag;
-    private Vector3 originalPlanePoint;
+    private bool isMoving;
+
+    private Vector3 lastDragPoint;
+    private readonly Queue<Vector2> moves = new Queue<Vector2>();
 
     private void Awake()
     {
@@ -27,6 +32,14 @@ public class Box : MonoBehaviour
         GameManager.Instance.OnTick += this.HandleTick;
     }
 
+    private void Update()
+    {
+        if (!this.isMoving && this.moves.Count > 0)
+        {
+            this.Move(MoveDuration, this.moves.Dequeue());
+        }
+    }
+
     private void OnDestroy()
     {
         if (GameManager.Exists)
@@ -37,9 +50,9 @@ public class Box : MonoBehaviour
 
     private void Move(float duration, Vector2 dir)
     {
-        Debug.Log("[Box] Moving dir=" + dir + ", duration=" + duration, this);
+        Debug.Log("[Die] Moving dir=" + dir + ", duration=" + duration, this);
 
-        Debug.Assert(!this.isRotating, this);
+        Debug.Assert(!this.isMoving, this);
 
         var visualPos = this.visualParent.position;
         var pivotPos = visualPos;
@@ -61,11 +74,11 @@ public class Box : MonoBehaviour
         this.transform.position = pivotPos;
         this.visualParent.position = visualPos;
 
-        this.isRotating = true;
+        this.isMoving = true;
 
         this.transform.DORotate(addedPivotRot, duration, RotateMode.WorldAxisAdd)
             .SetEase(Ease.InQuad)
-            .OnComplete(() => this.isRotating = false);
+            .OnComplete(() => this.isMoving = false);
     }
 
     private void MoveRandom(float duration)
@@ -101,36 +114,31 @@ public class Box : MonoBehaviour
     {
         if (drag.DraggedGO == this.visualParent.gameObject)
         {
-            this.hasMovedSinceDrag = false;
-            this.originalPlanePoint = this.GetPlanePoint(drag);
+            this.lastDragPoint = this.GetPlanePoint(drag);
         }
     }
 
     private void OnDragUpdateWorldObject(WorldInput.DragData drag)
     {
-        if (drag.DraggedGO == this.visualParent.gameObject)
+        if (drag.DraggedGO == this.coll.gameObject)
         {
-            var canStillMove = !this.hasMovedSinceDrag && !this.isRotating;
-            
-            if (canStillMove)
+            var planePoint = this.GetPlanePoint(drag);
+            var amountDragged = planePoint - this.lastDragPoint;
+
+            if (Mathf.Abs(amountDragged.x) >= MinDistBeforeMove)
             {
-                var planePoint = this.GetPlanePoint(drag);
-                var amountDragged = planePoint - this.originalPlanePoint;
-                var amountDraggedV2 = new Vector2(amountDragged.x, amountDragged.z);
+                var move = new Vector2(Mathf.Sign(amountDragged.x), 0f);
+                this.moves.Enqueue(move);
 
-                if (amountDraggedV2.magnitude >= MinDistBeforeMove)
-                {
-                    if (Mathf.Abs(amountDragged.x) > Mathf.Abs(amountDraggedV2.y))
-                    {
-                        this.Move(MoveDuration, Vector2.right * Mathf.Sign(amountDraggedV2.x));
-                    }
-                    else
-                    {
-                        this.Move(MoveDuration, Vector2.up * Mathf.Sign(amountDraggedV2.y));
-                    }
+                this.lastDragPoint.x += move.x;
+            }
 
-                    this.hasMovedSinceDrag = true;
-                }
+            if (Mathf.Abs(amountDragged.z) >= MinDistBeforeMove)
+            {
+                var move = new Vector2(0f, Mathf.Sign(amountDragged.z));
+                this.moves.Enqueue(move);
+
+                this.lastDragPoint.z += move.y;
             }
         }
     }
