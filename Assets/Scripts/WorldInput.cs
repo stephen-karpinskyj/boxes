@@ -28,9 +28,19 @@ public class WorldInput : MonoBehaviour
         public Ray CurrentRay;
 
         /// <summary>
+        /// Last frame's screen position of dragged point.
+        /// </summary>
+        public Vector2 PrevScreenPosition;
+
+        /// <summary>
         /// Last screen position of dragged point;
         /// </summary>
         public Vector2 CurrentScreenPosition;
+
+        /// <summary>
+        /// Last frame's world position of dragged point.
+        /// </summary>
+        public Vector3 PrevWorldPosition;
 
         /// <summary>
         /// Last world position of dragged point;
@@ -39,7 +49,7 @@ public class WorldInput : MonoBehaviour
     }
 
     private const float HoldDurationThreshold = 0.5f;
-    private const float DragStartDeltaThreshold = 0.1f;
+    private const float DragStartDeltaThreshold = 0f;
 
     [SerializeField]
     private Camera worldCamera;
@@ -115,7 +125,7 @@ public class WorldInput : MonoBehaviour
             if (this.drag != null)
             {
                 Debug.Log("[World.Input] Drag ended on object=" + pressedGO.name);
-                this.BroadcastMessage("OnDragEndWorldObject", this.drag, SendMessageOptions.DontRequireReceiver);
+                this.BroadcastMessage("WorldInput_DragEnd", this.drag, SendMessageOptions.DontRequireReceiver);
                 this.drag = null;
             }
             else
@@ -126,7 +136,7 @@ public class WorldInput : MonoBehaviour
                 if (pressedGO == hit.GetGameObject())
                 {
                     Debug.Log("[World.Input] Tapped on object=" + pressedGO.name);
-                    this.BroadcastMessage("OnTapWorldObject", pressedGO, SendMessageOptions.DontRequireReceiver);
+                    this.BroadcastMessage("WorldInput_Tap", pressedGO, SendMessageOptions.DontRequireReceiver);
                 }
             }
         }
@@ -165,20 +175,24 @@ public class WorldInput : MonoBehaviour
                     DraggedGO = pressedGO,
                     WorldOffset = this.lastPressHit.transform.position - this.lastPressHit.point,
                     StartWorldPosition = this.lastPressHit.point,
+                    CurrentScreenPosition = pointerPos,
+                    CurrentWorldPosition = draggedPoint,
                 };
             }
 
             this.drag.CurrentRay = ray;
+            this.drag.PrevScreenPosition = this.drag.CurrentScreenPosition;
             this.drag.CurrentScreenPosition = pointerPos;
+            this.drag.PrevWorldPosition = this.drag.CurrentWorldPosition;
             this.drag.CurrentWorldPosition = draggedPoint;
 
             if (isDragStarting)
             {
                 Debug.Log("[World.Input] Drag started on object=" + pressedGO.name);
-                this.BroadcastMessage("OnDragStartWorldObject", this.drag, SendMessageOptions.DontRequireReceiver);
+                this.BroadcastMessage("WorldInput_DragStart", this.drag, SendMessageOptions.DontRequireReceiver);
             }
 
-            this.BroadcastMessage("OnDragUpdateWorldObject", this.drag, SendMessageOptions.DontRequireReceiver);
+            this.BroadcastMessage("WorldInput_DragUpdate", this.drag, SendMessageOptions.DontRequireReceiver);
         }
     }
 
@@ -195,7 +209,7 @@ public class WorldInput : MonoBehaviour
 	        if (didHit && pressedGO == hit.GetGameObject())
             {
                 Debug.Log("[World.Input] Held object=" + pressedGO.name);
-                this.BroadcastMessage("OnHoldWorldObject", pressedGO, SendMessageOptions.DontRequireReceiver);
+                this.BroadcastMessage("WorldInput_OnHold", pressedGO, SendMessageOptions.DontRequireReceiver);
                 this.lastPressHit = default(RaycastHit);
 	        }  
 	    }
