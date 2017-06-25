@@ -58,6 +58,11 @@ public class Die : MonoBehaviour
 
 	            if (this.state.MoveProgress <= 0f || this.state.MoveProgress >= 1f)
 	            {
+                    if (this.state.MoveProgress >= 1f)
+                    {
+                        GameManager.Instance.EndMove(this);
+                    }
+
 	                this.moves.RemoveOldest();
 	                this.UpdateState();
 	            }

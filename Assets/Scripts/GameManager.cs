@@ -1,13 +1,12 @@
-﻿using System.Collections;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.SceneManagement;
+using System.Collections;
 
 public class GameManager : BehaviourSingleton<GameManager>
 {
-    private const float TickDuration = 1f;
-    private const int TickCount = 10;
-
-    public delegate void OnTickDelegate();
+    private int tick;
+    
+    public delegate void OnTickDelegate(int tick);
     public OnTickDelegate OnTick = delegate { };
 
     private void OnEnable()
@@ -20,6 +19,13 @@ public class GameManager : BehaviourSingleton<GameManager>
         SceneManager.sceneLoaded -= this.HandleSceneLoaded;
     }
 
+    public void EndMove(Die die)
+    {
+        this.tick++;
+
+        this.OnTick(this.tick);
+    }
+
     private void Start()
     {
         this.Reset();
@@ -27,30 +33,22 @@ public class GameManager : BehaviourSingleton<GameManager>
 
     private void Reset()
     {
-        this.StopAllCoroutines();
+        this.tick = 0;
+        
+        this.OnTick(this.tick);
 
-        //this.StartCoroutine(this.RunCoroutine());
-    }
-
-    private IEnumerator RunCoroutine()
-    {
-        Debug.Log("[Game] Starting", this);
-
-        yield return new WaitForSeconds(1f);
-
-        for (var i = 0; i < TickCount; i++)
-        {
-            Debug.Log("[Game] Tick=" + i, this);
-            this.OnTick();
-
-            yield return new WaitForSeconds(TickDuration);
-        }
-
-        Debug.Log("[Game] Finished", this);
+        Debug.Log("[Game] Reset", this);
     }
 
     private void HandleSceneLoaded(Scene scene, LoadSceneMode mode)
     {
+        this.StartCoroutine(this.HandleSceneLoadedCoroutine());
+    }
+
+    private IEnumerator HandleSceneLoadedCoroutine()
+    {
+        yield return null;
+        
         this.Reset();
     }
 }
