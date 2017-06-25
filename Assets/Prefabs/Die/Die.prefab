@@ -22,7 +22,7 @@ GameObject:
   - component: {fileID: 33983945218827260}
   - component: {fileID: 65161086951858768}
   - component: {fileID: 23198217338889516}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: VIsual
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -38,7 +38,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4740030720030836}
   - component: {fileID: 114679398787133494}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Die
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -83,7 +83,7 @@ MeshRenderer:
   m_ReceiveShadows: 1
   m_MotionVectors: 1
   m_LightProbeUsage: 1
-  m_ReflectionProbeUsage: 1
+  m_ReflectionProbeUsage: 0
   m_Materials:
   - {fileID: 2100000, guid: 2479a3bc81bb6f248a04e139c8c9c3ea, type: 2}
   m_StaticBatchInfo:
