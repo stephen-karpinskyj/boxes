@@ -1,13 +1,21 @@
 ﻿using UnityEngine;
 using UnityEngine.SceneManagement;
-using System.Collections;
 
 public class GameManager : BehaviourSingleton<GameManager>
 {
+    private int prevTick;
     private int tick;
     
-    public delegate void OnTickDelegate(int tick);
-    public OnTickDelegate OnTick = delegate { };
+    public delegate void OnTickChangeDelegate(int prevTick, int tick);
+    public OnTickChangeDelegate OnTickChange = delegate { };
+
+    public delegate void OnTickUpdateDelegate(int prevTick, int tick, float t);
+    public OnTickUpdateDelegate OnTickUpdate = delegate { };
+
+    private void Awake()
+    {
+        Input.multiTouchEnabled = false;
+    }
 
     private void OnEnable()
     {
@@ -19,36 +27,32 @@ public class GameManager : BehaviourSingleton<GameManager>
         SceneManager.sceneLoaded -= this.HandleSceneLoaded;
     }
 
-    public void EndMove(Die die)
+    public void EndTick(Die die)
     {
+        this.prevTick = this.tick;
         this.tick++;
 
-        this.OnTick(this.tick);
+        this.OnTickChange(this.prevTick, this.tick);
     }
 
-    private void Start()
+    public void UpdateTick(Die die, float t)
     {
-        this.Reset();
+        this.OnTickUpdate(this.prevTick, this.tick, t);
     }
 
     private void Reset()
     {
+        this.prevTick = -1;
         this.tick = 0;
         
-        this.OnTick(this.tick);
+        this.OnTickChange(this.prevTick, this.tick);
+        this.OnTickUpdate(this.prevTick, this.tick, 0f);
 
         Debug.Log("[Game] Reset", this);
     }
 
     private void HandleSceneLoaded(Scene scene, LoadSceneMode mode)
     {
-        this.StartCoroutine(this.HandleSceneLoadedCoroutine());
-    }
-
-    private IEnumerator HandleSceneLoadedCoroutine()
-    {
-        yield return null;
-        
         this.Reset();
     }
 }

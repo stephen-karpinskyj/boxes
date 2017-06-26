@@ -3,11 +3,12 @@
 public class Die : MonoBehaviour
 {
     private const float DragDistPerRoll = 1.25f;
-    private const float RollDirChangeProgressLimit = 0.35f;
+    private const float MinDragMag = 0.03f;
+    private const float RollDirChangeProgressLimit = 0.25f;
     private const float RollDirChangeDiffLimit = 0.03f;
     private const float SwipeSpeedLimit = 0.1f;
-    private const float FastRollSpeed = 7f;
-    private const float SlowRollSpeed = 4.4f;
+    private const float FastRollSpeed = 7.5f;
+    private const float SlowRollSpeed = 4.7f;
     
     [SerializeField]
     private Transform visualParent;
@@ -60,12 +61,14 @@ public class Die : MonoBehaviour
 	            {
                     if (this.state.MoveProgress >= 1f)
                     {
-                        GameManager.Instance.EndMove(this);
+                        GameManager.Instance.EndTick(this);
                     }
 
 	                this.moves.RemoveOldest();
 	                this.UpdateState();
 	            }
+
+                GameManager.Instance.UpdateTick(this, this.state.MoveProgress);
             }
         }
         while (this.CanStillMove() && deltaProgress > 0f);
@@ -163,7 +166,7 @@ public class Die : MonoBehaviour
                 var zMag = Mathf.Min(DragDistPerRoll, Mathf.Abs(amountDragged.z));
                 var zDir = Mathf.Sign(amountDragged.z);
 
-                if (Mathf.Max(xMag, zMag) > 0f)
+                if (Mathf.Max(xMag, zMag) > MinDragMag)
                 {
                     var move = this.moves.GetLatestOrNew(FastRollSpeed);
 
@@ -201,7 +204,7 @@ public class Die : MonoBehaviour
                     }
                 }
             }
-            while (Mathf.Abs(Mathf.Max(amountDragged.x, amountDragged.z)) > 9f);
+            while (Mathf.Abs(Mathf.Max(amountDragged.x, amountDragged.z)) > MinDragMag);
         }
     }
 

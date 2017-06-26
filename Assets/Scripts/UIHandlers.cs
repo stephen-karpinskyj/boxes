@@ -5,24 +5,57 @@ using UnityEngine.SceneManagement;
 public class UIHandlers : MonoBehaviour
 {
     [SerializeField]
-    private Text turnText;
+    private Text oddTurnText;
 
-    private void Start()
+    [SerializeField]
+    private Text evenTurnText;
+
+    [SerializeField]
+    private float turnTextTweenDist = 70f;
+
+    private void OnEnable()
     {
-        GameManager.Instance.OnTick += this.HandleTick;
+        GameManager.Instance.OnTickUpdate += this.HandleTickUpdate;
     }
 
-    private void OnDestroy()
+    private void OnDisable()
     {
         if (GameManager.Exists)
         {
-            GameManager.Instance.OnTick -= this.HandleTick;
+            GameManager.Instance.OnTickUpdate -= this.HandleTickUpdate;
         }
     }
 
-    private void HandleTick(int tick)
+    private void HandleTickUpdate(int prevTick, int tick, float t)
     {
-        this.turnText.text = string.Format("Turn {0}", tick);
+        Vector2 pos;
+        Color col;
+
+        if (prevTick > tick)
+        {
+            // TODO
+        }
+        else
+        {
+            var text1 = tick % 2 == 0 ? this.evenTurnText : this.oddTurnText;
+            var text2 = tick % 2 != 0 ? this.evenTurnText : this.oddTurnText;
+
+            text1.text = (tick + 2).ToString();
+            pos = text1.rectTransform.anchoredPosition;
+            pos.x = Mathf.Lerp(-this.turnTextTweenDist, 0f, t);
+            text1.rectTransform.anchoredPosition = pos;
+            col = text1.color;
+            col.a = t;
+            text1.color = col;
+
+            text2.text = (tick + 1).ToString();
+            pos = text2.rectTransform.anchoredPosition;
+            pos.x = Mathf.Lerp(0f, this.turnTextTweenDist, t);
+            text2.rectTransform.anchoredPosition = pos;
+            col = text2.color;
+            col.a = 1f - t;
+            text2.color = col;
+        }
     }
 
     public void UGUI_OnResetButtonPress()
