@@ -4,6 +4,7 @@ using UnityEngine;
 [Serializable]
 public class DieState
 {
+    public Vector3 PrevDragDelta;
     public Vector3 PrevDragPoint;
 
     public Vector3 HingePos;

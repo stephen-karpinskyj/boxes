@@ -3,12 +3,13 @@
 public class Die : MonoBehaviour
 {
     private const float DragDistPerRoll = 1.25f;
-    private const float MinDragMag = 0.03f;
-    private const float RollDirChangeProgressLimit = 0.25f;
-    private const float RollDirChangeDiffLimit = 0.03f;
+    private const float MinDragMag = 0.015f;
+    private const float RollDirChangeDragLimit = 0.01f;
+    private const float RollDirChangeProgressLimit = 0.33f;
+    private const float RollDirChangeDiffLimit = 0.04f;
     private const float SwipeSpeedLimit = 0.1f;
-    private const float FastRollSpeed = 7.5f;
-    private const float SlowRollSpeed = 4.7f;
+    private const float FastRollSpeed = 6.5f;
+    private const float SlowRollSpeed = 4.4f;
     
     [SerializeField]
     private Transform visualParent;
@@ -214,13 +215,13 @@ public class Die : MonoBehaviour
 
         if (magDiff > RollDirChangeDiffLimit)
         {
-            if (xMag > zMag && !Mathf.Approximately(move.Direction.z, 0f)) 
+            if (xMag > zMag && !Mathf.Approximately(move.Direction.z, 0f) && Mathf.Abs(xMag) > RollDirChangeDragLimit) 
             {
                 this.moves.RoundLatestProgress(SlowRollSpeed, false);
                 move = this.moves.GetLatestOrNew(FastRollSpeed);
                 move.Direction = Vector3.right * xDir;
             }
-            else if (zMag > xMag && !Mathf.Approximately(move.Direction.x, 0f))
+            else if (zMag > xMag && !Mathf.Approximately(move.Direction.x, 0f) && Mathf.Abs(zMag) > RollDirChangeDragLimit)
             {
                 this.moves.RoundLatestProgress(SlowRollSpeed, false);
                 move = this.moves.GetLatestOrNew(FastRollSpeed);
