@@ -134,14 +134,14 @@ public class Board : BehaviourSingleton<Board>
         }
     }
 
-    public void EnterTile(Die die, Vector2I tile)
+    public void EnterTile(Die die, Vector2I tile, int upwardFace)
     {
         Debug.Assert(!this.dice.Any(kv => kv.Key != die && kv.Value == tile), this);
         Debug.Assert(!this.reservedTiles.Contains(tile), this);
 
 		this.dice[die] = tile;
 
-        Debug.Log("[Board] Die=" + die.Id + " entered tile=" + tile, this);
+        Debug.Log("[Board] Die=" + die.Id + " entered tile=" + tile + " with face=" + upwardFace, this);
     }
 
     public bool IsTileAvailable(Vector2I tile)
@@ -301,6 +301,7 @@ public class Board : BehaviourSingleton<Board>
                     var die = GameObjectUtility.InstantiatePrefab(this.diePrefab, this.transform);
                     die.gameObject.name = string.Format("Die {0}", tile);
                     die.transform.localPosition = new Vector3(tile.x, 0.5f, tile.y);
+					die.ShowUpwardFace(Random.Range(1, 7));
                 }
             }
         }

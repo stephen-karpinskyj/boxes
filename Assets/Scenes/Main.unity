@@ -403,7 +403,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 37adc9160c0e3414ca28c4346f624567, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  initialDiceCount: 25
+  initialDiceCount: 18
   diePrefab: {fileID: 114679398787133494, guid: 49be8cae302464d669b9974f260a80ee,
     type: 2}
   invalidTilePrefab: {fileID: 4968213647177244, guid: 4776185ac2cba4c14b0babb97b8fe5c1,

@@ -47,11 +47,6 @@ public class Die : MonoBehaviour
         }
     }
 
-    private void Start()
-    {
-		this.UpdateState();
-    }
-
     private void Update()
     {
         var deltaProgress = Time.smoothDeltaTime;
@@ -88,6 +83,12 @@ public class Die : MonoBehaviour
         while (this.CanStillMove() && deltaProgress > 0f);
     }
 
+    public void ShowUpwardFace(int upwardFace)
+    {
+        this.visualParent.rotation = this.state.CalculateRandomRotation(upwardFace);
+        this.UpdateState();
+    }
+
     private bool CanStillMove()
     {
         if (!this.moves.IsEmpty)
@@ -112,7 +113,7 @@ public class Die : MonoBehaviour
 
         this.state.CurrentTile.x = Mathf.RoundToInt(this.state.VisualPos.x);
         this.state.CurrentTile.y = Mathf.RoundToInt(this.state.VisualPos.z);
-        Board.Instance.EnterTile(this, this.state.CurrentTile);
+        Board.Instance.EnterTile(this, this.state.CurrentTile, this.state.CalculateUpwardFace());
     }
 
     private void ResetToState()
