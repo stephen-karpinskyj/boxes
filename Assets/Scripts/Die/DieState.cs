@@ -11,4 +11,6 @@ public class DieState
     public Vector3 VisualPos;
 
     public float MoveProgress;
+
+    public Vector2I CurrentTile;
 }

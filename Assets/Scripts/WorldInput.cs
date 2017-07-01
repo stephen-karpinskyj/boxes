@@ -52,9 +52,6 @@ public class WorldInput : MonoBehaviour
     private const float DragStartDeltaThreshold = 0f;
 
     [SerializeField]
-    private Camera worldCamera;
-
-    [SerializeField]
     private bool canHold = true;
 
     private Vector2 lastPointerPos;
@@ -89,15 +86,13 @@ public class WorldInput : MonoBehaviour
     
     private bool PointerRaycast(out RaycastHit hit, float maxDistance = Mathf.Infinity)
     {
-        Debug.Assert(this.worldCamera != null, this);
-
         if (EventSystem.current.IsPointerOverGameObject())
         {
             hit = default(RaycastHit);
             return false;
         }
 
-        var ray = this.worldCamera.ScreenPointToRay(GetPointerPos());
+        var ray = Camera.main.ScreenPointToRay(GetPointerPos());
         return Physics.Raycast(ray, out hit, maxDistance);
     }
 
@@ -160,7 +155,7 @@ public class WorldInput : MonoBehaviour
     {
         var pressedGO = this.lastPressHit.GetGameObject();
         var pointerPos = GetPointerPos();
-        var ray = this.worldCamera.ScreenPointToRay(pointerPos);
+        var ray = Camera.main.ScreenPointToRay(pointerPos);
         var draggedPoint = ray.GetPoint(this.lastPressHit.distance);
         var shouldDrag = this.drag != null || Vector3.Distance(this.lastPressHit.point, draggedPoint) >= DragStartDeltaThreshold;
 

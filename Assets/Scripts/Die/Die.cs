@@ -4,12 +4,14 @@ public class Die : MonoBehaviour
 {
     private const float DragDistPerRoll = 1.25f;
     private const float MinDragMag = 0.03f;
-    private const float RollDirChangeProgressLimit = 0.25f;
+    private const float RollDirChangeProgressLimit = 0.35f;
     private const float RollDirChangeDiffLimit = 0.03f;
     private const float SwipeSpeedLimit = 0.1f;
     private const float FastRollSpeed = 7.5f;
     private const float SlowRollSpeed = 4.7f;
-    
+
+    private static IdGenerator IdGen;
+
     [SerializeField]
     private Transform visualParent;
 
@@ -27,15 +29,27 @@ public class Die : MonoBehaviour
 
     private float progressDampVel;
 
+    public int Id { get; private set; }
+
     private void Awake()
     {
+        this.Id = IdGen.Next();
+        
         this.size = this.transform.localScale.x;
         this.halfSize = this.size / 2f;
 
         this.state = new DieState();
         this.moves = new DieMoveList();
 
-        this.UpdateState();
+        if (!GameManager.Instance.HasStarted)
+        {
+            Object.Destroy(this.gameObject);
+        }
+    }
+
+    private void Start()
+    {
+		this.UpdateState();
     }
 
     private void Update()
@@ -61,14 +75,14 @@ public class Die : MonoBehaviour
 	            {
                     if (this.state.MoveProgress >= 1f)
                     {
-                        GameManager.Instance.EndTick(this);
+                        GameManager.Instance.EndTick();
                     }
 
 	                this.moves.RemoveOldest();
-	                this.UpdateState();
+                    this.UpdateState();
 	            }
 
-                GameManager.Instance.UpdateTick(this, this.state.MoveProgress);
+                GameManager.Instance.UpdateTick(this.state.MoveProgress);
             }
         }
         while (this.CanStillMove() && deltaProgress > 0f);
@@ -95,6 +109,10 @@ public class Die : MonoBehaviour
         this.state.HingeRot = this.transform.rotation;
 		this.state.VisualPos = this.visualParent.position;
         this.state.MoveProgress = 0f;
+
+        this.state.CurrentTile.x = Mathf.RoundToInt(this.state.VisualPos.x);
+        this.state.CurrentTile.y = Mathf.RoundToInt(this.state.VisualPos.z);
+        Board.Instance.EnterTile(this, this.state.CurrentTile);
     }
 
     private void ResetToState()
@@ -140,13 +158,52 @@ public class Die : MonoBehaviour
         return drag.CurrentRay.GetPoint(dist);
     }
 
+    private DieMove CheckForRollDirectionChange(float xMag, float zMag, float xDir, float zDir, DieMove move)
+    {
+        var magDiff = Mathf.Abs(xMag - zMag);
+
+        if (magDiff > RollDirChangeDiffLimit)
+        {
+            var currentTile = DieMoveList.CalculateAdjacentTile(this.moves.TargetTile, -move.Direction);
+
+            if (xMag > zMag && !Mathf.Approximately(move.Direction.z, 0f)) 
+            {
+                var newDirection = Vector3.right * xDir;
+                var targetTile = DieMoveList.CalculateAdjacentTile(currentTile, newDirection);
+                var canMove = Board.Instance.IsTileAvailable(targetTile);
+
+                if (canMove)
+                {
+	                this.moves.RoundLatestProgress(SlowRollSpeed, false);
+	                move = this.moves.GetLatestOrNew(FastRollSpeed);
+                    this.moves.InitializeMove(move, newDirection);
+                }
+            }
+            else if (zMag > xMag && !Mathf.Approximately(move.Direction.x, 0f))
+            {
+                var newDirection = Vector3.forward * zDir;
+                var targetTile = DieMoveList.CalculateAdjacentTile(currentTile, newDirection);
+                var canMove = Board.Instance.IsTileAvailable(targetTile);
+
+                if (canMove)
+                {
+	                this.moves.RoundLatestProgress(SlowRollSpeed, false);
+	                move = this.moves.GetLatestOrNew(FastRollSpeed);
+	                this.moves.InitializeMove(move, newDirection);
+                }
+            }
+        }
+
+        return move;
+    }
+
     private void WorldInput_DragStart(WorldInput.DragData drag)
     {
         if (drag.DraggedGO == this.coll.gameObject)
         {
-            this.moves.ClearAllExceptOldest();
-
             this.state.PrevDragPoint = this.GetPlanePoint(drag);
+
+            this.moves.ClearAllExceptOldest(this.state.CurrentTile);
         }
     }
 
@@ -170,13 +227,21 @@ public class Die : MonoBehaviour
                 {
                     var move = this.moves.GetLatestOrNew(FastRollSpeed);
 
-	                if (move.Direction == Vector3.zero)
+                    if (!move.CheckIsInitialized())
 	                {
-                        move.Direction = xMag > zMag ? Vector3.right * xDir : Vector3.forward * zDir;
+                        var preferredDirection = xMag > zMag ? Vector3.right * xDir : Vector3.forward * zDir;
+                        var fallbackDirection = xMag > zMag ? Vector3.forward * zDir : Vector3.right * xDir;
+                        
+                        this.moves.InitializeMove(move, preferredDirection, fallbackDirection);
 	                }
                     else if (move.IsNearerToFinishing(RollDirChangeProgressLimit))
                     {
                         move = this.CheckForRollDirectionChange(xMag, zMag, xDir, zDir, move);
+                    }
+
+                    if (!move.CheckIsInitialized())
+                    {
+                        break;
                     }
 
                     var dragDelta = Vector3.zero;
@@ -197,8 +262,6 @@ public class Die : MonoBehaviour
 
                     if (dragDelta != Vector3.zero)
                     {
-                        Debug.Assert(!Mathf.Approximately(moveProgressDelta, 0f), this);
-                        
                         move = this.moves.AddProgress(moveProgressDelta, FastRollSpeed);
 	                    this.state.PrevDragPoint += dragDelta;
                     }
@@ -208,34 +271,11 @@ public class Die : MonoBehaviour
         }
     }
 
-    private DieMove CheckForRollDirectionChange(float xMag, float zMag, float xDir, float zDir, DieMove move)
-    {
-        var magDiff = Mathf.Abs(xMag - zMag);
-
-        if (magDiff > RollDirChangeDiffLimit)
-        {
-            if (xMag > zMag && !Mathf.Approximately(move.Direction.z, 0f)) 
-            {
-                this.moves.RoundLatestProgress(SlowRollSpeed, false);
-                move = this.moves.GetLatestOrNew(FastRollSpeed);
-                move.Direction = Vector3.right * xDir;
-            }
-            else if (zMag > xMag && !Mathf.Approximately(move.Direction.x, 0f))
-            {
-                this.moves.RoundLatestProgress(SlowRollSpeed, false);
-                move = this.moves.GetLatestOrNew(FastRollSpeed);
-                move.Direction = Vector3.forward * zDir;
-            }
-        }
-
-        return move;
-    }
-
     private void WorldInput_DragEnd(WorldInput.DragData drag)
     {
         if (drag.DraggedGO == this.coll.gameObject)
         {
-            this.moves.ClearAllExceptOldest();
+            this.moves.ClearAllExceptOldest(this.state.CurrentTile);
 
             var dragWorldVelocity = drag.CurrentWorldPosition - drag.PrevWorldPosition;
             var didSwipe = dragWorldVelocity.magnitude > SwipeSpeedLimit;

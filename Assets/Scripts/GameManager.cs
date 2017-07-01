@@ -5,12 +5,17 @@ public class GameManager : BehaviourSingleton<GameManager>
 {
     private int prevTick;
     private int tick;
-    
+
+    public delegate void OnGameStartDelegate();
+    public OnGameStartDelegate OnGameStart = delegate { };
+
     public delegate void OnTickChangeDelegate(int prevTick, int tick);
     public OnTickChangeDelegate OnTickChange = delegate { };
 
     public delegate void OnTickUpdateDelegate(int prevTick, int tick, float t);
     public OnTickUpdateDelegate OnTickUpdate = delegate { };
+
+    public bool HasStarted { get; private set; }
 
     private void Awake()
     {
@@ -27,7 +32,7 @@ public class GameManager : BehaviourSingleton<GameManager>
         SceneManager.sceneLoaded -= this.HandleSceneLoaded;
     }
 
-    public void EndTick(Die die)
+    public void EndTick()
     {
         this.prevTick = this.tick;
         this.tick++;
@@ -35,7 +40,7 @@ public class GameManager : BehaviourSingleton<GameManager>
         this.OnTickChange(this.prevTick, this.tick);
     }
 
-    public void UpdateTick(Die die, float t)
+    public void UpdateTick(float t)
     {
         this.OnTickUpdate(this.prevTick, this.tick, t);
     }
@@ -49,6 +54,9 @@ public class GameManager : BehaviourSingleton<GameManager>
         this.OnTickUpdate(this.prevTick, this.tick, 0f);
 
         Debug.Log("[Game] Reset", this);
+
+        this.HasStarted = true;
+        this.OnGameStart();
     }
 
     private void HandleSceneLoaded(Scene scene, LoadSceneMode mode)

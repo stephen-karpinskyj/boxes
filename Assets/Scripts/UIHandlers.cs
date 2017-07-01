@@ -40,7 +40,7 @@ public class UIHandlers : MonoBehaviour
             var text1 = tick % 2 == 0 ? this.evenTurnText : this.oddTurnText;
             var text2 = tick % 2 != 0 ? this.evenTurnText : this.oddTurnText;
 
-            text1.text = (tick + 2).ToString();
+            text1.text = (tick + 1).ToString();
             pos = text1.rectTransform.anchoredPosition;
             pos.x = Mathf.Lerp(-this.turnTextTweenDist, 0f, t);
             text1.rectTransform.anchoredPosition = pos;
@@ -48,7 +48,7 @@ public class UIHandlers : MonoBehaviour
             col.a = t;
             text1.color = col;
 
-            text2.text = (tick + 1).ToString();
+            text2.text = (tick + 0).ToString();
             pos = text2.rectTransform.anchoredPosition;
             pos.x = Mathf.Lerp(0f, this.turnTextTweenDist, t);
             text2.rectTransform.anchoredPosition = pos;

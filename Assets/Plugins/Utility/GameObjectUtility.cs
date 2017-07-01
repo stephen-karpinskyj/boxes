@@ -33,7 +33,7 @@ public static class GameObjectUtility
         return go.AddComponent<T>();
     }
 
-    public static T InstantiatePrefab<T>(T prefab, Transform parent = null, bool resetTransformAfterParenting = true) where T : Component
+    public static T InstantiatePrefab<T>(T prefab, Transform parent = null, bool worldPositionStays = true) where T : Component
     {
         Debug.Assert(prefab != null, prefab);
 
@@ -43,15 +43,7 @@ public static class GameObjectUtility
 
         if (parent)
         {
-            if (resetTransformAfterParenting)
-            {
-                t.transform.parent = parent;
-                ResetLocalTransform(t.transform, true);
-            }
-            else
-            {
-                t.transform.SetParent(parent, false);
-            }
+            t.transform.SetParent(parent, worldPositionStays);
         }
         
         return t;
