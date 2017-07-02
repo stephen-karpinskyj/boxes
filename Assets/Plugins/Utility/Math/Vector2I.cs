@@ -1,4 +1,5 @@
 ﻿using System;
+using UnityEngine;
 
 [Serializable]
 public struct Vector2I
@@ -7,6 +8,12 @@ public struct Vector2I
     public int y;
 
     public Vector2I(int x, int y)
+    {
+        this.x = x;
+        this.y = y;
+    }
+
+    public void Set(int x, int y)
     {
         this.x = x;
         this.y = y;
@@ -66,6 +73,21 @@ public struct Vector2I
         if (a.y == b.y)
         {
             return this.y == a.y;
+        }
+
+        return false;
+    }
+
+    public static bool IsAdjacent(Vector2I a, Vector2I b)
+    {
+        if (a.x == b.x && Mathf.Abs(a.y - b.y) == 1)
+        {
+            return true;
+        }
+
+        if (a.y == b.y && Mathf.Abs(a.x - b.x) == 1)
+        {
+            return true;
         }
 
         return false;

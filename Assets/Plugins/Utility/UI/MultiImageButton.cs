@@ -54,7 +54,7 @@ public class MultiImageButton : Button
             {
                 continue;
             }
-            
+
             g.CrossFadeColor(targetColor, !instant ? this.colors.fadeDuration : 0f, true, true);
         }
     }

@@ -71,7 +71,7 @@ public class WorldInput : MonoBehaviour
         {
             var needsUpdate = this.drag == null || GetPointerPos() != this.lastPointerPos;
 
-			if (needsUpdate)
+            if (needsUpdate)
             {
                 this.MouseUpdate();
                 this.lastPointerPos = GetPointerPos();
@@ -83,7 +83,7 @@ public class WorldInput : MonoBehaviour
             this.MouseUp();
         }
     }
-    
+
     private bool PointerRaycast(out RaycastHit hit, float maxDistance = Mathf.Infinity)
     {
         if (EventSystem.current.IsPointerOverGameObject())
@@ -102,16 +102,16 @@ public class WorldInput : MonoBehaviour
     }
 
     private void MouseDown()
-	{
+    {
         var didHit = this.PointerRaycast(out this.lastPressHit);
 
         if (didHit)
         {
             this.timePressStarted = Time.realtimeSinceStartup;
         }
-	}
+    }
 
-	private void MouseUp()
+    private void MouseUp()
     {
         var pressedGO = this.lastPressHit.GetGameObject();
 
@@ -119,9 +119,7 @@ public class WorldInput : MonoBehaviour
         {
             if (this.drag != null)
             {
-                Debug.Log("[World.Input] Drag ended on object=" + pressedGO.name);
-                this.BroadcastMessage("WorldInput_DragEnd", this.drag, SendMessageOptions.DontRequireReceiver);
-                this.drag = null;
+                this.EndDrag(pressedGO);
             }
             else
             {
@@ -135,20 +133,27 @@ public class WorldInput : MonoBehaviour
                 }
             }
         }
-	}
+    }
 
     private void MouseUpdate()
     {
         var pressedGO = this.lastPressHit.GetGameObject();
         if (pressedGO != null)
         {
-			this.CheckDrag();
+            this.CheckDrag();
 
             if (this.drag == null && this.canHold)
             {
                 this.CheckHold();
             }
         }
+    }
+
+    private void EndDrag(GameObject pressedGO)
+    {
+        Debug.Log("[World.Input] Drag ended on object=" + pressedGO.name);
+        this.BroadcastMessage("WorldInput_DragEnd", this.drag, SendMessageOptions.DontRequireReceiver);
+        this.drag = null;
     }
 
     private void CheckDrag()
@@ -193,20 +198,20 @@ public class WorldInput : MonoBehaviour
 
     private void CheckHold()
     {
-		var pressedGO = this.lastPressHit.GetGameObject();
-		var shouldHold = Time.realtimeSinceStartup - this.timePressStarted >= HoldDurationThreshold;
+        var pressedGO = this.lastPressHit.GetGameObject();
+        var shouldHold = Time.realtimeSinceStartup - this.timePressStarted >= HoldDurationThreshold;
 
         if (shouldHold)
-	    {
-	        RaycastHit hit;
-	        var didHit = this.PointerRaycast(out hit);
+        {
+            RaycastHit hit;
+            var didHit = this.PointerRaycast(out hit);
 
-	        if (didHit && pressedGO == hit.GetGameObject())
+            if (didHit && pressedGO == hit.GetGameObject())
             {
                 Debug.Log("[World.Input] Held object=" + pressedGO.name);
                 this.BroadcastMessage("WorldInput_OnHold", pressedGO, SendMessageOptions.DontRequireReceiver);
                 this.lastPressHit = default(RaycastHit);
-	        }  
-	    }
+            }
+        }
     }
 }

@@ -6,7 +6,7 @@ public class IntPool : GenericPool<int>
         : base(GenerateList(count))
     {
     }
-    
+
     private static List<int> GenerateList(int count)
     {
         var list = new List<int>(count);

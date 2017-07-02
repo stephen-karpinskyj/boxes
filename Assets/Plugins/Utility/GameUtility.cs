@@ -7,14 +7,14 @@ public static class GameUtility
 
     public static Vector2 GetScreenDimensions()
     {
-        #if UNITY_EDITOR
+#if UNITY_EDITOR
         System.Type T = System.Type.GetType("UnityEditor.GameView,UnityEditor");
         System.Reflection.MethodInfo GetSizeOfMainGameView = T.GetMethod("GetSizeOfMainGameView", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
-        System.Object Res = GetSizeOfMainGameView.Invoke(null,null);
+        System.Object Res = GetSizeOfMainGameView.Invoke(null, null);
         return (Vector2)Res;
-        #else
+#else
         return new Vector2(Screen.width, Screen.height);
-        #endif
+#endif
     }
 
     public static float GetScreenAspectRatio()
@@ -35,12 +35,12 @@ public static class GameUtility
     /// </summary>
     public static bool IsPlaying()
     {
-        #if UNITY_EDITOR
+#if UNITY_EDITOR
         if (!UnityEditor.EditorApplication.isPlaying)
         {
             return false;
         }
-        #endif
+#endif
 
         return true;
     }

@@ -11,7 +11,7 @@ public class Vector2IDrawer : PropertyDrawer
         position = EditorGUI.PrefixLabel(position, label);
 
         position.x -= 1;
-        position.width *= 2/3f;
+        position.width *= 2 / 3f;
 
         if (property.Next(true))
         {

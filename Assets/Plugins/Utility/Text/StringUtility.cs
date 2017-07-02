@@ -38,10 +38,10 @@ public static class StringUtility
 
     public static string Editor_AbsoluteToRelativeFilepath(string absoluteFilepath)
     {
-        #if UNITY_EDITOR
+#if UNITY_EDITOR
         return "Assets" + absoluteFilepath.Substring(Application.dataPath.Length);
-        #else
+#else
         throw new NotSupportedException();
-        #endif
+#endif
     }
 }

@@ -11,7 +11,7 @@ public static class EnumUtility
         var t = typeof(T);
 
         Debug.Assert(t.IsEnum);
-        
+
         var values = Enum.GetValues(t);
 
         return (T)values.GetValue(Random.Range(0, values.Length));

@@ -14,6 +14,13 @@ public struct Vector3I
         this.z = z;
     }
 
+    public void Set(int x, int y, int z)
+    {
+        this.x = x;
+        this.y = y;
+        this.z = z;
+    }
+
     public override string ToString()
     {
         return string.Format("[{0},{1},{2}]", this.x, this.y, this.z);

@@ -28,7 +28,7 @@ public abstract class ScriptableAsset<T> : ScriptableSingleton<T> where T : Scri
     #endregion
 
 
-    #if UNITY_EDITOR
+#if UNITY_EDITOR
     private static string CreateAssetPath()
     {
         var assetPath = PathToResources;
@@ -80,9 +80,9 @@ public abstract class ScriptableAsset<T> : ScriptableSingleton<T> where T : Scri
 
         if (!silent)
         {
-	        UnityEditor.Selection.activeObject = asset;
+            UnityEditor.Selection.activeObject = asset;
 
-	        Debug.LogFormat(asset, "Saved game data asset stored under \"{0}\"", assetPath);
+            Debug.LogFormat(asset, "Saved game data asset stored under \"{0}\"", assetPath);
         }
     }
 
@@ -95,5 +95,5 @@ public abstract class ScriptableAsset<T> : ScriptableSingleton<T> where T : Scri
             UnityEditor.Selection.activeObject = asset;
         }
     }
-    #endif
+#endif
 }

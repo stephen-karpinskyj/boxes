@@ -8,7 +8,7 @@ public static class ReflectionUtility
     {
         foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
         {
-			var type = assembly.GetType(typeName);
+            var type = assembly.GetType(typeName);
 
             if (type != null)
             {
@@ -20,13 +20,13 @@ public static class ReflectionUtility
     }
 
     public static List<Type> FindAllConcreteDerivedTypes<T>()
-    { 
+    {
         return (from domainAssembly in AppDomain.CurrentDomain.GetAssemblies()
                 from assemblyType in domainAssembly.GetTypes()
                 where typeof(T).IsAssignableFrom(assemblyType) && !assemblyType.IsAbstract
                 select assemblyType).ToList();
     }
-    
+
     public static bool IsConcrete(Type type)
     {
         return type.IsClass && !type.IsAbstract && !type.IsInterface;

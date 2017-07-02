@@ -45,7 +45,7 @@ public static class GameObjectUtility
         {
             t.transform.SetParent(parent, worldPositionStays);
         }
-        
+
         return t;
     }
 
@@ -62,7 +62,7 @@ public static class GameObjectUtility
 
         t.localPosition = Vector3.zero;
         t.localRotation = Quaternion.identity;
-        
+
         if (includeScale)
         {
             t.localScale = Vector3.one;
@@ -94,7 +94,7 @@ public static class GameObjectUtility
         return children;
     }
 
-    public static void SetLayer(this Transform t, int layer) 
+    public static void SetLayer(this Transform t, int layer)
     {
         t.gameObject.layer = layer;
 

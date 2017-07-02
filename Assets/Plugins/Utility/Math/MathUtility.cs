@@ -70,7 +70,7 @@ public static class MathUtility
     public static float PercentBetween(float min, float max, float value)
     {
         return Mathf.Clamp01((value - min) / (max - min));
-    }      
+    }
 
     /// <remarks>Based on: http://stackoverflow.com/questions/217578/how-can-i-determine-whether-a-2d-point-is-within-a-polygon</remarks>
     public static bool PolygonContainsPoint(Vector2[] polygon, Vector2 point)

@@ -3,15 +3,42 @@ using System.Collections.Generic;
 using UnityEngine;
 
 [Serializable]
-public class DieMoveList
+public class DieMoveQueue
 {
+    private static readonly GenericPool<DieMove> MovePool = new GenericPool<DieMove>();
+
+    public int Id { get; private set; }
+
     private List<DieMove> moves = new List<DieMove>();
 
-    public Vector2I TargetTile { get; private set; }
+    private Vector2I currentTile;
 
     public bool IsEmpty
     {
         get { return this.moves.Count <= 0; }
+    }
+
+    public void Initialize(int id)
+    {
+        Debug.Assert(this.IsEmpty);
+
+        this.Id = id;
+    }
+
+    public void RemoveMove(DieMove move)
+    {
+        Debug.Assert(this.moves.Contains(move));
+
+        if (move.CheckIsInitialized())
+        {
+            Board.Instance.UnreserveTile(move.TargetTile);
+        }
+
+        var removed = this.moves.Remove(move);
+
+        Debug.Assert(removed);
+
+        MovePool.Unuse(move);
     }
 
     public DieMove GetLatest()
@@ -19,24 +46,15 @@ public class DieMoveList
         return this.IsEmpty ? null : this.moves[this.moves.Count - 1];
     }
 
-    public DieMove GetLatestOrNew(float speed)
+    public DieMove GetLatestOrNew(float speed, bool isUser)
     {
-        DieMove move = null;
+        var move = this.IsEmpty ? null : this.GetLatest();
 
-        if (this.IsEmpty)
+        if (move == null || move.IsFinished)
         {
-            move = new DieMove { RollSpeed = speed };
+            move = MovePool.Use(() => { return new DieMove(); });
+            move.Reset(speed, isUser);
             this.moves.Add(move);
-        }
-        else
-        {
-            move = this.GetLatest();
-
-            if (move.IsFinished)
-            {
-                move = new DieMove { RollSpeed = speed };
-                this.moves.Add(move);
-            }
         }
 
         return move;
@@ -50,7 +68,7 @@ public class DieMoveList
     public DieMove RemoveOldest()
     {
         var oldest = this.GetOldest();
-        
+
         if (oldest != null)
         {
             this.RemoveMove(oldest);
@@ -61,7 +79,7 @@ public class DieMoveList
 
     public DieMove ClearAllExceptOldest(Vector2I currentTile)
     {
-		var oldest = this.GetOldest();
+        var oldest = this.GetOldest();
 
         DieMove latest;
 
@@ -70,15 +88,23 @@ public class DieMoveList
             this.RemoveMove(latest);
         }
 
-        this.TargetTile = oldest == null ? currentTile : oldest.TargetTile;
+        this.currentTile = currentTile;
 
         return oldest;
     }
 
-    public DieMove AddProgress(float progressDelta, float speed)
+    public void ClearAll()
     {
-        var move = this.GetLatestOrNew(speed);
-        
+        while (!this.IsEmpty)
+        {
+            this.RemoveOldest();
+        }
+    }
+
+    public DieMove AddProgress(float progressDelta, float speed, bool isUser)
+    {
+        var move = this.GetLatestOrNew(speed, isUser);
+
         while (!Mathf.Approximately(progressDelta, 0f))
         {
             var moveProgressDelta = progressDelta > 0f ?
@@ -95,17 +121,17 @@ public class DieMoveList
             {
                 newDirection *= -1;
                 progressDelta *= -1;
-				move.IsFinished = true;
-                this.TargetTile = CalculateAdjacentTile(this.TargetTile, newDirection);
+                move.IsFinished = true;
             }
             else if (Mathf.Approximately(move.Progress, 1f))
             {
                 move.IsFinished = true;
+                this.currentTile = move.TargetTile;
             }
 
             if (move.IsFinished)
             {
-                move = this.GetLatestOrNew(speed);
+                move = this.GetLatestOrNew(speed, isUser);
                 this.InitializeMove(move, newDirection);
             }
         }
@@ -113,7 +139,7 @@ public class DieMoveList
         return move;
     }
 
-    public DieMove RoundLatestProgress(float speed, bool alwaysRoundUp)
+    public DieMove RoundLatestProgress(float speed, bool isUser, bool alwaysRoundUp)
     {
         var move = this.GetLatest();
 
@@ -130,10 +156,11 @@ public class DieMoveList
                 move.Progress = Mathf.Round(move.Progress);
             }
 
-			move.IsFinished = true;
-            if (Mathf.Approximately(0f, move.Progress))
+            move.IsFinished = true;
+            move.IsUser = isUser;
+            if (Mathf.Approximately(1f, move.Progress)) // Only if moved
             {
-                this.TargetTile = CalculateAdjacentTile(this.TargetTile, -move.Direction);
+                this.currentTile = move.TargetTile;
             }
         }
 
@@ -143,25 +170,29 @@ public class DieMoveList
     public bool InitializeMove(DieMove move, params Vector3[] directions)
     {
         var didReserve = false;
-        
+
         foreach (var dir in directions)
         {
-            var targetTile = CalculateAdjacentTile(this.TargetTile, dir);
-			
-            didReserve = Board.Instance.ReserveTile(targetTile);
+            var target = this.CalculateAdjacentTile(dir);
 
-	        if (didReserve)
-	        {
-				move.Initialize(dir, targetTile);
-                this.TargetTile = targetTile;
+            didReserve = Board.Instance.ReserveTile(target);
+
+            if (didReserve)
+            {
+                move.Initialize(dir, target);
                 break;
-	        }
+            }
         }
 
         return didReserve;
     }
 
-    public static Vector2I CalculateAdjacentTile(Vector2I tile, Vector3 direction)
+    public Vector2I CalculateAdjacentTile(Vector3 direction)
+    {
+        return CalculateAdjacentTile(this.currentTile, direction);
+    }
+
+    private static Vector2I CalculateAdjacentTile(Vector2I tile, Vector3 direction)
     {
         if (!Mathf.Approximately(0f, direction.x))
         {
@@ -173,13 +204,5 @@ public class DieMoveList
         }
 
         return tile;
-    }
-
-    private void RemoveMove(DieMove move)
-    {
-        Debug.Assert(this.moves.Contains(move), this);
-        
-        Board.Instance.UnreserveTile(move.TargetTile);
-        this.moves.Remove(move);
     }
 }

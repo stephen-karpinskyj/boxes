@@ -6,11 +6,13 @@ public class Triangulator
 {
     private List<Vector2> m_points = new List<Vector2>();
 
-    public Triangulator (Vector2[] points) {
+    public Triangulator(Vector2[] points)
+    {
         m_points = new List<Vector2>(points);
     }
 
-    public int[] Triangulate() {
+    public int[] Triangulate()
+    {
         List<int> indices = new List<int>();
 
         int n = m_points.Count;
@@ -18,18 +20,21 @@ public class Triangulator
             return indices.ToArray();
 
         int[] V = new int[n];
-        if (Area() > 0) {
+        if (Area() > 0)
+        {
             for (int v = 0; v < n; v++)
                 V[v] = v;
         }
-        else {
+        else
+        {
             for (int v = 0; v < n; v++)
                 V[v] = (n - 1) - v;
         }
 
         int nv = n;
         int count = 2 * nv;
-        for (int m = 0, v = nv - 1; nv > 2; ) {
+        for (int m = 0, v = nv - 1; nv > 2;)
+        {
             if ((count--) <= 0)
                 return indices.ToArray();
 
@@ -43,7 +48,8 @@ public class Triangulator
             if (nv <= w)
                 w = 0;
 
-            if (Snip(u, v, w, nv, V)) {
+            if (Snip(u, v, w, nv, V))
+            {
                 int a, b, c, s, t;
                 a = V[u];
                 b = V[v];
@@ -63,10 +69,12 @@ public class Triangulator
         return indices.ToArray();
     }
 
-    private float Area () {
+    private float Area()
+    {
         int n = m_points.Count;
         float A = 0.0f;
-        for (int p = n - 1, q = 0; q < n; p = q++) {
+        for (int p = n - 1, q = 0; q < n; p = q++)
+        {
             Vector2 pval = m_points[p];
             Vector2 qval = m_points[q];
             A += pval.x * qval.y - qval.x * pval.y;
@@ -74,14 +82,16 @@ public class Triangulator
         return (A * 0.5f);
     }
 
-    private bool Snip (int u, int v, int w, int n, int[] V) {
+    private bool Snip(int u, int v, int w, int n, int[] V)
+    {
         int p;
         Vector2 A = m_points[V[u]];
         Vector2 B = m_points[V[v]];
         Vector2 C = m_points[V[w]];
         if (Mathf.Epsilon > (((B.x - A.x) * (C.y - A.y)) - ((B.y - A.y) * (C.x - A.x))))
             return false;
-        for (p = 0; p < n; p++) {
+        for (p = 0; p < n; p++)
+        {
             if ((p == u) || (p == v) || (p == w))
                 continue;
             Vector2 P = m_points[V[p]];
@@ -91,7 +101,8 @@ public class Triangulator
         return true;
     }
 
-    private bool InsideTriangle (Vector2 A, Vector2 B, Vector2 C, Vector2 P) {
+    private bool InsideTriangle(Vector2 A, Vector2 B, Vector2 C, Vector2 P)
+    {
         float ax, ay, bx, by, cx, cy, apx, apy, bpx, bpy, cpx, cpy;
         float cCROSSap, bCROSScp, aCROSSbp;
 
