@@ -9,11 +9,16 @@ public class Die : MonoBehaviour
     private const float SwipeSpeedLimit = 0.1f;
     private const float FastRollSpeed = 7.5f;
     private const float SlowRollSpeed = 4.7f;
+    private const float SelectedEmissionAmount = 0.07f;
+    private const string EmissionColorPropertyName = "_EmissionColor";
 
     private static IdGenerator IdGen;
 
     [SerializeField]
     private Transform visualParent;
+
+    [SerializeField]
+    private Renderer rend;
 
     [SerializeField]
     private Collider coll;
@@ -27,6 +32,7 @@ public class Die : MonoBehaviour
     private DieState state = new DieState();
     private DieMoveList moves = new DieMoveList();
 
+    private Color initialEmission;
     private float progressDampVel;
 
     public int Id { get; private set; }
@@ -40,6 +46,8 @@ public class Die : MonoBehaviour
 
         this.state = new DieState();
         this.moves = new DieMoveList();
+
+        this.initialEmission = this.rend.material.GetColor(EmissionColorPropertyName);
 
         if (!GameManager.Instance.HasStarted)
         {
@@ -205,6 +213,10 @@ public class Die : MonoBehaviour
             this.state.PrevDragPoint = this.GetPlanePoint(drag);
 
             this.moves.ClearAllExceptOldest(this.state.CurrentTile);
+
+            var a = SelectedEmissionAmount;
+            var emission = new Color(a,a,a);
+            this.rend.material.SetColor(EmissionColorPropertyName, emission);
         }
     }
 
@@ -283,6 +295,8 @@ public class Die : MonoBehaviour
 
             var alwaysRoundUp = !this.moves.IsEmpty && didSwipe;
             this.moves.RoundLatestProgress(SlowRollSpeed, alwaysRoundUp);
+
+            this.rend.material.SetColor(EmissionColorPropertyName, this.initialEmission);
         }
     }
 }
