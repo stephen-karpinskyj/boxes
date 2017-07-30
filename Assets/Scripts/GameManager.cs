@@ -73,7 +73,7 @@ public class GameManager : BehaviourSingleton<GameManager>
     private void Reset()
     {
         this.score = 0;
-        this.Tick = -1;
+        this.Tick = 0;
 
         Debug.Log("[Game] Reset", this);
 

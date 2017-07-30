@@ -3,6 +3,9 @@ using UnityEngine;
 
 using Random = UnityEngine.Random;
 
+/// <summary>
+/// Destroyed -> Spawning -> Default -> Despawning -> Destroyed
+/// </summary>
 [Serializable]
 public class DieState
 {
@@ -12,7 +15,16 @@ public class DieState
     public Vector2I Tile;
     public Quaternion Rotation;
     public int SpawnTick;
-    public int DespawnTick;
+
+    /// <summary>
+    /// Tick this would have first despawned. 
+    /// </summary>
+    public int FirstDespawnTick;
+
+    /// <summary>
+    /// Tick this will currently despawn. 
+    /// </summary>
+    public int CurrentDespawnTick;
 
     public void Reset(int id)
     {
@@ -20,7 +32,8 @@ public class DieState
         this.Tile.Set(0, 0);
         this.Rotation = Quaternion.identity;
         this.SpawnTick = -1;
-        this.DespawnTick = -1;
+        this.FirstDespawnTick = -1;
+        this.CurrentDespawnTick = -1;
     }
 
     public void CopyTo(DieState other)
@@ -30,7 +43,8 @@ public class DieState
         other.Tile = this.Tile;
         other.Rotation = this.Rotation;
         other.SpawnTick = this.SpawnTick;
-        other.DespawnTick = this.DespawnTick;
+        other.FirstDespawnTick = this.FirstDespawnTick;
+        other.CurrentDespawnTick = this.CurrentDespawnTick;
     }
 
     public int CalculateCurrentFace()
@@ -59,7 +73,15 @@ public class DieState
     /// </summary>
     public bool CalculateIsDespawned(float tick)
     {
-        return !Mathf.Approximately(this.DespawnTick, -1f) && tick >= this.DespawnTick + BoardDieSpawner.DespawnDuration;
+        return !Mathf.Approximately(this.CurrentDespawnTick, -1f) && tick >= this.CurrentDespawnTick + BoardDieSpawner.DespawnDuration;
+    }
+
+    /// <summary>
+    /// Whether this die should be destroyed from the board at <paramref name="tick"/>.
+    /// </summary>
+    public bool CalculateShouldBeDestroyed(float tick)
+    {
+        return !Mathf.Approximately(this.CurrentDespawnTick, -1f) && tick > this.CurrentDespawnTick + BoardDieSpawner.DespawnDuration;
     }
 
     /// <summary>
@@ -67,7 +89,7 @@ public class DieState
     /// </summary>
     public bool CalculateIsDespawning(float tick)
     {
-        return !Mathf.Approximately(this.DespawnTick, -1f) && tick >= this.DespawnTick;
+        return !Mathf.Approximately(this.CurrentDespawnTick, -1f) && tick >= this.CurrentDespawnTick;
     }
 
     public void SetFace(int face)

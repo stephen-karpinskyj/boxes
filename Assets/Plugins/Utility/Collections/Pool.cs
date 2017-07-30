@@ -4,7 +4,7 @@ using UnityEngine;
 
 using Random = UnityEngine.Random;
 
-public class GenericPool<T>
+public class Pool<T>
 {
     private List<T> available;
     private List<T> used;
@@ -32,13 +32,13 @@ public class GenericPool<T>
         get { return this.used; }
     }
 
-    public GenericPool()
+    public Pool()
     {
         this.available = new List<T>();
         this.used = new List<T>();
     }
 
-    public GenericPool(IEnumerable<T> elements)
+    public Pool(IEnumerable<T> elements)
     {
         Debug.Assert(this.available == null);
 

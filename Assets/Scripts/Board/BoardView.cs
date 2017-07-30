@@ -10,7 +10,7 @@ public class BoardView
     [SerializeField]
     private int initialPoolSize = 80;
 
-    private GenericPool<DieView> dieViewPool = new GenericPool<DieView>();
+    private Pool<DieView> dieViewPool = new Pool<DieView>();
 
     private Transform root;
 

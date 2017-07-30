@@ -7,7 +7,6 @@ public class BoardDieGroup
     public int DieFace;
     public List<DieState> DieStates = new List<DieState>();
 
-    public bool IsDespawned { get; private set; }
     public int Score { get; private set; }
 
     public void AddIfNotAlready(DieState die)
@@ -24,19 +23,31 @@ public class BoardDieGroup
 
         if (isDespawning)
         {
-            var areAllDiceDespawning = this.DieStates.Find(d => d.DespawnTick == -1) == null;
+            var areAllDiceDespawning = this.DieStates.Find(d => d.FirstDespawnTick == -1) == null;
 
             if (!areAllDiceDespawning)
             {
                 foreach (var dieState in this.DieStates)
                 {
-                    dieState.DespawnTick = tick;
+                    if (dieState.CurrentDespawnTick == -1)
+                    {
+                        dieState.FirstDespawnTick = tick;
+                    }
+
+                    dieState.CurrentDespawnTick = tick;
                 }
             }
 
-            this.IsDespawned = this.DieStates.Find(d => d.CalculateIsDespawned(tick)) != null;
             this.Score = this.DieFace * this.DieStates.Count;
         }
+    }
+
+    /// <summary>
+    /// Whether this die group's score can be added to the game's score at <paramref name="tick"/>.
+    /// </summary>
+    public bool CalculateIsScoreReady(int tick)
+    {
+        return this.DieStates.TrueForAll(d => d.CalculateIsDespawned(tick) && !d.CalculateShouldBeDestroyed(tick));
     }
 
     public bool IsConnected(BoardDieGroup otherGroup)

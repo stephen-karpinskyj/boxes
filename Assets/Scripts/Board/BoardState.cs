@@ -5,6 +5,8 @@ using UnityEngine;
 [Serializable]
 public class BoardState
 {
+    private const int NumUndoTicks = 3;
+
     private List<TickState> tickStates = new List<TickState>();
 
     public void Initialize()
@@ -23,10 +25,10 @@ public class BoardState
         return tickState != null && tickState.Contains(dieId);
     }
 
-    public bool ContainsDieState(Vector2I tile, int tick)
+    public bool IsOccupied(Vector2I tile, int tick)
     {
         var tickState = this.tickStates.Find(ts => ts.Tick == tick);
-        return tickState != null && tickState.Contains(tile);
+        return tickState != null && tickState.IsOccupied(tile);
     }
 
     public DieState GetDieState(int dieId, int tick)
@@ -63,9 +65,18 @@ public class BoardState
         return tickState;
     }
 
-    private void RemoveLaterTicks(int tick)
+    public void ResetTickState(int tick, int originalTick)
     {
-        foreach (var tickState in this.tickStates.FindAll(t => t.Tick > tick))
+        var tickState = this.GetTickStateOrAdd(tick);
+
+        tickState.Clear();
+
+        this.GetTickStateOrAdd(originalTick).Fill(tickState);
+    }
+
+    private void RemoveTicks(Predicate<TickState> match)
+    {
+        foreach (var tickState in this.tickStates.FindAll(match))
         {
             tickState.Clear();
             this.tickStates.Remove(tickState);
@@ -75,10 +86,10 @@ public class BoardState
     public TickState ChangeTick(TickUpdate update)
     {
         var currentTickState = this.GetTickStateOrAdd(update.Current);
+        var isMovingForward = update.Current == update.Previous + 1;
 
-        if (update.Current == update.Previous + 1)
+        if (isMovingForward)
         {
-            // Copy previous tick to new tick
             this.GetTickStateOrAdd(update.Previous).Fill(currentTickState);
         }
 
@@ -89,10 +100,13 @@ public class BoardState
             GameManager.Instance.AddScore(currentTickState.Score);
         }
 
-        this.RemoveLaterTicks(update.Current);
+        if (isMovingForward)
+        {
+            currentTickState.Fill(this.GetTickStateOrAdd(update.Current + 1));
+        }
 
-        // TODO: Remove any states for ticks before 3 ticks ago
-        // TODO: Return removed dieState's to pool
+        this.RemoveTicks(t => t.Tick > update.Current + 1);
+        this.RemoveTicks(t => t.Tick < update.Current - NumUndoTicks);
 
         return currentTickState;
     }
@@ -100,7 +114,9 @@ public class BoardState
     public void UpdateTick(TickUpdate update)
     {
         var currentTickState = this.GetTickStateOrAdd(update.Current);
+        var nextTickState = this.GetTickStateOrAdd(update.Current + 1);
 
         currentTickState.Update();
+        nextTickState.Update();
     }
 }

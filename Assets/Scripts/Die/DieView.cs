@@ -3,7 +3,8 @@
 [SelectionBase]
 public class DieView : MonoBehaviour
 {
-    private const float MinSpawnHeight = -0.99f;
+    private const float MinHeight = -0.49f;
+    private const float MaxHeight = 0.5f;
     private const float SelectedEmissionAmount = 0.07f;
     private const float GlowingEmissionAmount = 0.25f;
     private const string EmissionColorPropertyName = "_EmissionColor";
@@ -19,6 +20,9 @@ public class DieView : MonoBehaviour
 
     [SerializeField]
     private AnimationCurve rollCurve;
+
+    [SerializeField]
+    private AnimationCurve heightCurve;
 
     private float size;
     private float halfSize;
@@ -41,7 +45,10 @@ public class DieView : MonoBehaviour
         this.gameObject.name = string.Format("Die [{0}]", dieId);
         this.gameObject.SetActive(true);
 
-        this.SetHeight(0f);
+        this.SetHeight(1f);
+        this.isDragging = false;
+        this.isDespawning = false;
+        this.UpdateGlowing();
     }
 
     public void Hide()
@@ -54,17 +61,24 @@ public class DieView : MonoBehaviour
     {
         Debug.Assert(this.Id == dieState.Id, this);
 
-        var direction = dieState.CalculateDirection(nextDieState);
+        if (dieState.CalculateIsDespawned(update.Current + update.Progress))
+        {
+            this.Hide();
+        }
+        else
+        {
+            var direction = dieState.CalculateDirection(nextDieState);
 
-        this.UpdateRoll(dieState, update.Progress, direction);
+            this.UpdateRoll(dieState, update.Progress, direction);
 
-        var currentHeight = this.CalculateSpawnHeight(update.Current, dieState);
-        var nextHeight = this.CalculateSpawnHeight(update.Current + 1, nextDieState == null ? dieState : nextDieState);
+            var currentHeight = this.CalculateHeightPercentage(update.Current, dieState);
+            var nextHeight = this.CalculateHeightPercentage(update.Current + 1, nextDieState == null ? dieState : nextDieState);
+            var curvedHeightPercentage = Mathf.Lerp(currentHeight, nextHeight, this.heightCurve.Evaluate(update.Progress));
+            this.SetHeight(curvedHeightPercentage);
 
-        this.SetHeight(Mathf.Lerp(currentHeight, nextHeight, update.Progress));
-
-        this.isDespawning = dieState.CalculateIsDespawning(update.Current + update.Progress);
-        this.UpdateGlowing();
+            this.isDespawning = dieState.CalculateIsDespawning(update.Current + update.Progress);
+            this.UpdateGlowing();
+        }
     }
 
     public void SetDragging(bool dragging)
@@ -79,27 +93,29 @@ public class DieView : MonoBehaviour
         this.SetEmission(isGlowing ? GlowingEmissionAmount : 0f);
     }
 
-    private void SetHeight(float yPos)
+    private void SetHeight(float percentage)
     {
+        var height = Mathf.Lerp(MinHeight, MaxHeight, percentage);
+
         var pos = this.transform.position;
-        pos.y = 0.5f + yPos;
+        pos.y = height;
         this.transform.position = pos;
     }
 
-    private float CalculateSpawnHeight(float tick, DieState dieState)
+    private float CalculateHeightPercentage(int tick, DieState dieState)
     {
-        var percentageSpawned = 1f;
+        var heightPercentage = 1f;
 
         if (dieState.CalculateIsSpawning(tick))
         {
-            percentageSpawned = 1f - (dieState.SpawnTick - tick) / BoardDieSpawner.SpawnDuration;
+            heightPercentage = 1f - (dieState.SpawnTick - tick) / (float)BoardDieSpawner.SpawnDuration;
         }
         else if (dieState.CalculateIsDespawning(tick))
         {
-            percentageSpawned = 1f - (tick - dieState.DespawnTick) / BoardDieSpawner.DespawnDuration;
+            heightPercentage = 1f - (tick - dieState.CurrentDespawnTick) / (float)BoardDieSpawner.DespawnDuration;
         }
 
-        return Mathf.Lerp(MinSpawnHeight, 0f, percentageSpawned);
+        return heightPercentage;
     }
 
     private void SetEmission(float emission)

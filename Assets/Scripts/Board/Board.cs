@@ -82,7 +82,7 @@ public class Board : BehaviourSingleton<Board>
     {
         // TODO: Query availability at particular tick
 
-        if (this.state.ContainsDieState(tile, GameManager.Instance.Tick))
+        if (this.state.IsOccupied(tile, GameManager.Instance.Tick))
         {
             return false;
         }
@@ -120,9 +120,12 @@ public class Board : BehaviourSingleton<Board>
         return this.state.GetDieState(dieId, tick);
     }
 
-    public void ClearTickState(int tick)
+    /// <summary>
+    /// Reset state of <paramref name="tick"/> with <paramref name="originalTick"/>. 
+    /// </summary>
+    public void ResetTickState(int tick, int originalTick)
     {
-        this.state.GetTickStateOrAdd(tick).Clear();
+        this.state.ResetTickState(tick, originalTick);
     }
 
     private void HandleGameStart()
@@ -142,9 +145,7 @@ public class Board : BehaviourSingleton<Board>
 
     private void HandleTickChange(TickUpdate update)
     {
-        var tickState = this.state.ChangeTick(update);
-
-        Debug.Assert(tickState.Tick == update.Current, this);
+        this.state.ChangeTick(update);
 
         this.spawner.ChangeTick(update.Current);
     }

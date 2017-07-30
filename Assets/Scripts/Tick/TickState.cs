@@ -9,7 +9,7 @@ public class TickState
 
     private List<BoardDieGroup> dieGroups = new List<BoardDieGroup>();
 
-    private static GenericPool<DieState> dieStatePool = new GenericPool<DieState>();
+    private static Pool<DieState> dieStatePool = new Pool<DieState>();
 
     public int Tick { get; private set; }
     public int Score { get; private set; }
@@ -42,9 +42,11 @@ public class TickState
         return this.dieStates.Find(d => d.Id == dieId) != null;
     }
 
-    public bool Contains(Vector2I tile)
+    public bool IsOccupied(Vector2I tile)
     {
-        return this.dieStates.Find(d => d.Tile == tile) != null;
+        var dieState = this.dieStates.Find(d => d.Tile == tile);
+
+        return dieState != null && !dieState.CalculateIsDespawned(this.Tick);
     }
 
     public DieState GetDieState(int dieId)
@@ -88,22 +90,22 @@ public class TickState
         this.UpdateGroups();
         this.UpdateScore();
 
-        var despawnedCount = this.dieStates.RemoveAll(d => d.CalculateIsDespawned(this.Tick));
+        var destroyedCount = this.dieStates.RemoveAll(d => d.CalculateShouldBeDestroyed(this.Tick));
 
-        if (despawnedCount > 0)
+        if (destroyedCount > 0)
         {
-            Debug.Log("[Board] Despawned dice count=" + despawnedCount + " at tick=" + this.Tick);
+            Debug.Log("[Board] Destroyed dice count=" + destroyedCount + " at tick=" + this.Tick);
         }
     }
 
-    private void UpdateGroups(TickState backupTick = null)
+    private void UpdateGroups()
     {
         this.dieGroups.Clear();
 
         // Create groups
         foreach (var dieStateA in this.dieStates)
         {
-            if (dieStateA.CalculateIsSpawning(this.Tick))
+            if (dieStateA.CalculateIsSpawning(this.Tick) || dieStateA.CalculateShouldBeDestroyed(this.Tick))
             {
                 continue;
             }
@@ -122,7 +124,7 @@ public class TickState
                     continue;
                 }
 
-                if (dieStateB.CalculateIsSpawning(this.Tick))
+                if (dieStateB.CalculateIsSpawning(this.Tick) || dieStateB.CalculateShouldBeDestroyed(this.Tick))
                 {
                     continue;
                 }
@@ -218,7 +220,7 @@ public class TickState
 
         foreach (var g in this.dieGroups)
         {
-            if (g.IsDespawned)
+            if (g.CalculateIsScoreReady(this.Tick))
             {
                 this.Score += g.Score;
             }

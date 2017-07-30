@@ -5,7 +5,7 @@ using UnityEngine;
 [Serializable]
 public class DieMoveQueue
 {
-    private static readonly GenericPool<DieMove> MovePool = new GenericPool<DieMove>();
+    private static readonly Pool<DieMove> MovePool = new Pool<DieMove>();
 
     public int Id { get; private set; }
 

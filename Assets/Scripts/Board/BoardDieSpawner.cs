@@ -107,7 +107,7 @@ public class BoardDieSpawner
 
     public void ChangeTick(int tick)
     {
-        if (tick % SpawnDuration == 0)
+        if ((tick - 1) % SpawnDuration == 0)
         {
             this.StartSpawningNextDie(this.FindRandomSpawnTile(), tick);
         }
@@ -166,9 +166,9 @@ public class BoardDieSpawner
         this.spawningTile = tile;
     }
 
-    private GenericPool<Vector2I> GetAvailableTiles()
+    private Pool<Vector2I> GetAvailableTiles()
     {
-        var pool = new GenericPool<Vector2I>();
+        var pool = new Pool<Vector2I>();
 
         foreach (var t in this.allTiles)
         {

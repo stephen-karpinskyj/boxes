@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-public class IntPool : GenericPool<int>
+public class IntPool : Pool<int>
 {
     public IntPool(int count)
         : base(GenerateList(count))

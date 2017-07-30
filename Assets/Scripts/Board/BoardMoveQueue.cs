@@ -5,7 +5,7 @@ using UnityEngine;
 [Serializable]
 public class BoardMoveQueue
 {
-    private GenericPool<DieMoveQueue> dicePool = new GenericPool<DieMoveQueue>();
+    private Pool<DieMoveQueue> dicePool = new Pool<DieMoveQueue>();
 
     private BoardMoveQueueState state = new BoardMoveQueueState();
 
@@ -67,6 +67,8 @@ public class BoardMoveQueue
 
                 if (isEndingTick)
                 {
+                    Debug.Assert(isMovingToNextTick ^ isMovingToStartOfTick);
+
                     if (isMovingToNextTick)
                     {
                         GameManager.Instance.EndTick();
@@ -74,7 +76,7 @@ public class BoardMoveQueue
 
                     if (isMovingToStartOfTick)
                     {
-                        Board.Instance.ClearTickState(GameManager.Instance.Tick + 1); // Erase future tick
+                        Board.Instance.ResetTickState(GameManager.Instance.Tick + 1, GameManager.Instance.Tick); // Erase changes
                     }
 
                     this.state.Progress = 0f;
@@ -88,10 +90,8 @@ public class BoardMoveQueue
                     {
                         dieQueue.RemoveOldest();
                     }
-                    else
-                    {
-                        this.UpdateNextTickDieState(dieQueue, GameManager.Instance.Tick);
-                    }
+
+                    this.UpdateNextTickDieState(dieQueue, GameManager.Instance.Tick);
                 }
 
                 this.UpdateState();
@@ -135,7 +135,9 @@ public class BoardMoveQueue
     {
         var oldest = dieQueue.GetOldest();
 
-        if (oldest.CheckIsInitialized())
+        var hasOldest = oldest != null && oldest.CheckIsInitialized();
+
+        if (hasOldest)
         {
             var dieState = Board.Instance.GetDieState(dieQueue.Id, tick);
 
@@ -157,6 +159,10 @@ public class BoardMoveQueue
 
                 nextDieState.Tile = oldest.TargetTile;
                 nextDieState.Rotation = DieState.CalculateAdjacentRotation(dieState.Rotation, oldest.Direction);
+            }
+            else
+            {
+                dieQueue.ClearAll();
             }
         }
     }
