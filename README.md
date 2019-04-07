@@ -1,3 +1,3 @@
-# boxes
+# Dicey
 
-Abstract mobile sim
+Dice-rolling puzzler.
