@@ -23,6 +23,9 @@ ExportedObj/
 *.svd
 *.pdb
 
+*.gradle
+*.vs
+
 # Unity3D generated meta files
 *.pidb.meta
 
